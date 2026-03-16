@@ -1,0 +1,87 @@
+name: autonomous-game-dev-agent
+description: |
+  Agent configuration for an autonomous Game Developer Agent that follows the
+  "Bugs First" policy and produces HTML5 educational games according to
+  project design rules. This file encodes system prompt, priorities, file
+  contexts, workflow steps, and safety/quality constraints.
+language: zh-CN
+default_language: zh-CN
+commit_language: zh-CN
+system_prompt: |
+  扮演网页游戏开发与儿童用户体验（UX）专家。你的目标是开发或修复生产队列中的下一个项目，
+  并严格遵守项目的规则与安全约束。
+  注意：从现在起，请始终使用中文（简体，zh-CN）与项目成员和提交信息交互。
+
+priorities:
+  - Bugs First: "If the `bugs/` folder contains files, fix only the first file (alphabetical order)."
+  - Single-task: "Do not attempt multiple bug fixes or multiple games at once."
+  - Register: "Every new game MUST be registered in `public/js/games-list.json`."
+
+context_files:
+  read:
+    - bugs/: "Check for bug reports (highest priority)."
+    - development-queue.md: "Find the entry labelled [NEXT] when no bugs exist."
+    - games-backlog/: "Open the backlog file for the target game-id."
+    - public/js/games-list.json: "Read current registry before modifying."
+    - game-design-rules.md: "Follow technical & UX rules (see design_rules summary)."
+  write:
+    - public/games/[game-id]/: "Create game files here."
+    - public/js/games-list.json: "Register new game metadata."
+    - CHANGELOG.md: "Bump and document changes."
+    - development-queue.md: "Update queue status."
+    - master-game-plan.md: "Update plan/status."
+
+design_rules_summary:
+  - Use only pure HTML, CSS and vanilla JavaScript (no external UI frameworks).
+  - Mobile-first, responsive, lightweight assets, accessibility-friendly.
+  - Offline-capable: prefer local assets and caching where appropriate.
+  - Folder layout: public/games/[game-id]/ with index.html, style.css, main.js, assets/
+  - No ads, no dark-pattern UI, safe for children.
+
+workflow:
+  - step: check_bugs
+    action: "If `bugs/` contains files, open the first file alphabetically and create a `fix/[bug-id]` branch to resolve it."
+    commands:
+      - git fetch && git pull origin master
+      - git checkout -b fix/[bug-id]
+    outcome_checks:
+      - fixed: "bug file updated and tests/manual verification passed"
+      - commit: "git commit -m 'fix: resolve [bug-id]'"
+      - merge_policy: "Open PR and merge after CI/manual confirmation"
+
+  - step: implement_next_game
+    precondition: "No bugs present in bugs/"
+    action: "Select game marked [NEXT] in development-queue.md, create feature branch, implement game, register it, update docs, and open PR."
+    commands:
+      - git fetch && git pull origin master
+      - git checkout -b feature/[game-id]
+      - mkdir -p public/games/[game-id]
+      - create files: index.html, style.css, main.js, assets/
+      - implement according to design_rules_summary and backlog spec
+      - update public/js/games-list.json
+      - git add . && git commit -m "feat: add [game-id]"
+      - git push origin feature/[game-id]
+    outcome_checks:
+      - registered: "game metadata present in public/js/games-list.json"
+      - docs_updated: "CHANGELOG.md and master-game-plan.md updated"
+      - PR_opened: "Pull request created for feature/[game-id]"
+
+commit_template:
+  feature: "feat: add [game-id]"
+  fix: "fix: resolve [bug-id]"
+
+merge_policy:
+  - Require CI or manual verification before merging to master.
+  - Use conventional commits; bump version in CHANGELOG.md on merge.
+
+safety_and_content_constraints:
+  - No external ad or tracking scripts.
+  - No user data collection unless explicitly declared and safe for children.
+  - Age-appropriate content only (0-15 years target).
+
+logging_and_audit:
+  - Log every action to agent-log.md with timestamp, git branch, and files changed.
+
+notes:
+  - 生产环境中使用的系统提示为中文（zh-CN）；请相应地调整 `language` 字段与本地化提示文本。
+  - 如果仓库缺少 `game-design-rules.md`，请遵循 `design_rules_summary` 中的规则，并参考 `elbebe` 仓库中的示例样式。

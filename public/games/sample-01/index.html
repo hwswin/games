@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>示例游戏：点我</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-root">
+    <h1>点我游戏</h1>
+    <p class="instructions">在 20 秒内尽可能多地点击移动的圆点。</p>
+
+    <div id="play-area" aria-label="游戏区域"></div>
+
+    <div class="hud">
+      <div>时间: <span id="time">20</span>s</div>
+      <div>分数: <span id="score">0</span></div>
+    </div>
+
+    <button id="start">开始游戏</button>
+    <footer class="credits">示例：适合 3+ 儿童</footer>
+  </main>
+
+  <script src="main.js"></script>
+</body>
+</html>

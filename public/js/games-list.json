@@ -1,0 +1,9 @@
+[
+  {
+    "id": "sample-01",
+    "title": "示例游戏：点我",
+    "description": "20 秒点击移动圆点，适合儿童的简单交互示例",
+    "path": "public/games/sample-01/index.html",
+    "age_range": "3+"
+  }
+]
